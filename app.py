@@ -10,7 +10,6 @@ from typing import Optional
 from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
-from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 from dotenv import load_dotenv
@@ -75,17 +74,24 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Mount static files
-static_dir = os.path.join(os.path.dirname(__file__), "static")
-if not os.path.exists(static_dir):
-    os.makedirs(static_dir, exist_ok=True)
+project_dir = os.path.dirname(os.path.abspath(__file__))
+static_assets = {
+    "app.js": os.path.join(project_dir, "app.js"),
+    "style.css": os.path.join(project_dir, "style.css"),
+}
 
-app.mount("/static", StaticFiles(directory=static_dir), name="static")
+
+@app.get("/static/{asset_name}", summary="Serve frontend assets")
+async def serve_static_asset(asset_name: str):
+    asset_path = static_assets.get(asset_name)
+    if asset_path is None:
+        raise HTTPException(status_code=404, detail="Asset not found.")
+    return FileResponse(asset_path)
 
 
 @app.get("/", summary="Serve dashboard")
 async def read_index():
-    index_path = os.path.join(static_dir, "index.html")
+    index_path = os.path.join(project_dir, "index.html")
     if os.path.exists(index_path):
         return FileResponse(index_path)
     return JSONResponse({"status": "TeamSync AI Backend Running."})
@@ -93,10 +99,10 @@ async def read_index():
 
 @app.get("/judge", summary="Serve Judge Scrollytelling Page")
 def get_judge_page():
-    judge_path = os.path.join(static_dir, "judge.html")
+    judge_path = os.path.join(project_dir, "judge.html")
     if os.path.exists(judge_path):
         return FileResponse(judge_path)
-    return FileResponse("static/judge.html")
+    raise HTTPException(status_code=404, detail="Judge page not found.")
 
 
 @app.get("/api/health", summary="Health check and status")

@@ -1,7 +1,7 @@
 {
   "functions": {
     "api/index.py": {
-      "includeFiles": "static/**"
+      "includeFiles": "{index.html,judge.html,style.css,app.js}"
     }
   },
   "rewrites": [

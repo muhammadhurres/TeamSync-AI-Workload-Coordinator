@@ -669,3 +669,13 @@ If you want to make planning feel less like guessing and more like engineering, 
 
 
 
+## Deploy to Vercel
+
+Import the repository into Vercel and deploy from the repository root. The
+serverless entry point is `api/index.py`; `vercel.json` routes requests to it
+and includes the root-level HTML, CSS, and JavaScript files required by the app.
+## Deploy to Vercel
+
+Import the repository into Vercel and deploy from the repository root. The
+serverless entry point is `api/index.py`; `vercel.json` routes requests to it
+and includes the root-level HTML, CSS, and JavaScript files required by the app.
