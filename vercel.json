@@ -1,13 +1,7 @@
 {
   "functions": {
-    "api/index.py": {
+    "app.py": {
       "includeFiles": "{index.html,judge.html,style.css,app.js}"
     }
-  },
-  "rewrites": [
-    {
-      "source": "/(.*)",
-      "destination": "/api/index.py"
-    }
-  ]
+  }
 }
