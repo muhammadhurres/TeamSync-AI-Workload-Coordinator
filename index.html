@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TeamSync AI — Team Task & Resource Coordinator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <!-- Floating Judge Page Link -->
+  <a href="/judge" class="judge-trophy-btn" id="judge-trophy-btn" title="Open Judge Scrollytelling Experience">🏆 For Judges</a>
+
+  <!-- Ambient background glow elements -->
+  <div class="ambient-glow glow-ochre"></div>
+  <div class="ambient-glow glow-cyan"></div>
+
+  <!-- Dual-Section Authentication Overlay Modal -->
+  <div id="login-modal" class="modal-overlay">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="brand-badge">
+          <span class="pulse-dot"></span>
+          <span>ROLE-BASED AUTHENTICATION</span>
+        </div>
+        <h2>TeamSync <span class="accent-text">AI</span></h2>
+        <p class="modal-subtitle">Select your role to access your dedicated dashboard and persistent workspace.</p>
+      </div>
+
+      <!-- 2 Role Navigation Tabs -->
+      <div class="auth-role-tabs">
+        <button class="role-tab active" id="tab-lead" data-role="lead">
+          <span class="role-tab-icon">👑</span>
+          <div class="role-tab-text">
+            <strong>Team Lead</strong>
+            <small>Admin & Planning Control</small>
+          </div>
+        </button>
+        <button class="role-tab" id="tab-candidate" data-role="candidate">
+          <span class="role-tab-icon">👤</span>
+          <div class="role-tab-text">
+            <strong>Candidate / Employee</strong>
+            <small>Personalized Workload Hub</small>
+          </div>
+        </button>
+      </div>
+
+      <!-- Sign In vs Sign Up Toggle -->
+      <div class="auth-mode-toggle">
+        <button class="mode-btn active" id="mode-btn-login">Sign In</button>
+        <button class="mode-btn" id="mode-btn-signup">Sign Up (New Account)</button>
+      </div>
+
+      <!-- Quick 1-Click Demo Buttons for Fast Video Recording -->
+      <div class="quick-demo-container" id="quick-demo-container">
+        <label class="input-label">Quick 1-Click Demo Access:</label>
+        <div class="preset-buttons" id="preset-buttons-lead">
+          <button class="btn btn-preset btn-preset-lead" data-user="lead" data-pass="lead123" data-role="lead">
+            <span class="preset-icon">👑</span>
+            <div class="preset-info">
+              <strong>Quick Demo: Team Lead</strong>
+              <small>Full Coordinator & AI Access</small>
+            </div>
+          </button>
+        </div>
+        <div class="preset-buttons hidden" id="preset-buttons-candidate">
+          <button class="btn btn-preset" data-user="ali" data-pass="team123" data-role="candidate">
+            <span class="preset-icon">👤</span>
+            <div class="preset-info">
+              <strong>Quick Demo: Candidate Ali</strong>
+              <small>Python & Backend Specialist (8h)</small>
+            </div>
+          </button>
+          <button class="btn btn-preset" data-user="alex" data-pass="team123" data-role="candidate">
+            <span class="preset-icon">👤</span>
+            <div class="preset-info">
+              <strong>Quick Demo: Candidate Alex Chen</strong>
+              <small>Frontend & UI/UX Specialist (12h)</small>
+            </div>
+          </button>
+        </div>
+      </div>
+
+      <!-- Authentication Form -->
+      <form id="auth-form" class="modal-form">
+        <input type="hidden" id="auth-role" value="lead">
+        
+        <div class="form-group">
+          <label for="auth-username" class="input-label">Username</label>
+          <input type="text" id="auth-username" class="form-control" placeholder="e.g. lead or ali" required>
+        </div>
+
+        <div class="form-group">
+          <label for="auth-password" class="input-label">Password</label>
+          <input type="password" id="auth-password" class="form-control" placeholder="••••••••" required>
+        </div>
+
+        <!-- Extra fields shown only for Sign Up -->
+        <div id="signup-extra-fields" class="hidden">
+          <div class="form-group">
+            <label for="auth-display-name" class="input-label">Full Name</label>
+            <input type="text" id="auth-display-name" class="form-control" placeholder="e.g. Ali Ahmed">
+          </div>
+
+          <div class="form-group" id="group-skills">
+            <label for="auth-skills" class="input-label">Skills & Specialties</label>
+            <input type="text" id="auth-skills" class="form-control" placeholder="e.g. Python, PyTorch, React">
+          </div>
+
+          <div class="form-group" id="group-hours">
+            <label for="auth-hours" class="input-label">Available Hours</label>
+            <input type="number" id="auth-hours" class="form-control" value="8" min="1" max="168">
+          </div>
+        </div>
+
+        <div id="auth-error-msg" class="login-error-msg hidden"></div>
+
+        <button type="submit" id="btn-submit-auth" class="btn btn-primary btn-block">
+          <span class="btn-text" id="btn-auth-text">Sign In as Team Lead</span>
+          <span class="btn-icon">→</span>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Main Container -->
+  <div class="dashboard-container">
+    
+    <!-- Top Header -->
+    <header class="dashboard-header">
+      <div class="header-content">
+        <div class="brand-badge">
+          <span class="pulse-dot"></span>
+          <span id="header-badge-role">TEAM COORDINATOR POC</span>
+        </div>
+        <h1 class="brand-title">TeamSync <span class="accent-text">AI</span></h1>
+        <p class="brand-subtitle" id="header-lead-desc">Automated workload balancing, fairness scoring, and conflict-free assignment engine for hackathon teams.</p>
+      </div>
+
+      <div class="header-actions">
+        <!-- User Profile Pill -->
+        <div class="user-profile-widget" id="user-profile-widget">
+          <div class="user-avatar" id="header-user-avatar">👑</div>
+          <div class="user-info">
+            <span class="user-name" id="header-user-name">Elena (Team Lead)</span>
+            <span class="user-role-badge" id="header-user-role">👑 Team Lead</span>
+          </div>
+          <button id="btn-switch-user" class="btn-text-link" title="Switch User or Role">Switch</button>
+        </div>
+
+        <div class="header-sub-actions">
+          <div class="status-pill" id="engine-status-pill">
+            <span class="status-indicator"></span>
+            <span id="engine-status-text">Checking status...</span>
+          </div>
+          <button id="btn-load-sample" class="btn btn-secondary">
+            <span class="btn-icon">⚡</span> Load Sample Hackathon Data
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Notification Toast (Fixed/Floating) -->
+    <div id="toast" class="toast hidden">
+      <span class="toast-icon">✅</span>
+      <span id="toast-message">Notification</span>
+    </div>
+
+    <!-- Error Alert Banner -->
+    <div id="error-banner" class="alert-banner hidden">
+      <div class="alert-content">
+        <span class="alert-icon">⚠️</span>
+        <div>
+          <strong id="alert-title">Connection Error</strong>
+          <p id="alert-message">Unable to coordinate tasks. Please check inputs and retry.</p>
+        </div>
+      </div>
+      <button id="btn-retry" class="btn btn-sm btn-accent">Retry Generation</button>
+    </div>
+
+    <!-- ======================================================================
+         VIEW A: TEAM LEAD / ADMIN DASHBOARD
+         ====================================================================== -->
+    <div id="lead-dashboard-view">
+      <main class="config-grid">
+        
+        <!-- Team Members Panel -->
+        <section class="card config-card" id="members-card">
+          <div class="card-header">
+            <div class="card-title-group">
+              <span class="card-tag">TEAM ROSTER</span>
+              <h2>Team Members & Capacity</h2>
+            </div>
+            <button id="btn-add-member" class="btn btn-sm btn-ghost">+ Add Member</button>
+          </div>
+          <p class="card-description">Specify member skills and available hours for this sprint.</p>
+          
+          <div class="table-responsive">
+            <table class="input-table" id="members-table">
+              <thead>
+                <tr>
+                  <th style="width: 30%;">Name</th>
+                  <th style="width: 45%;">Skills & Specialties</th>
+                  <th style="width: 15%;">Hours</th>
+                  <th style="width: 10%;"></th>
+                </tr>
+              </thead>
+              <tbody id="members-tbody">
+                <!-- Dynamically populated rows -->
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Tasks Panel -->
+        <section class="card config-card" id="tasks-card">
+          <div class="card-header">
+            <div class="card-title-group">
+              <span class="card-tag">TASKS</span>
+              <h2>Project Deliverables</h2>
+            </div>
+            <button id="btn-add-task" class="btn btn-sm btn-ghost">+ Add Task</button>
+          </div>
+          <p class="card-description">List the deliverables, domain requirement, and estimated effort.</p>
+          
+          <div class="table-responsive">
+            <table class="input-table" id="tasks-table">
+              <thead>
+                <tr>
+                  <th style="width: 45%;">Task Title</th>
+                  <th style="width: 30%;">Required Skill</th>
+                  <th style="width: 15%;">Hours</th>
+                  <th style="width: 10%;"></th>
+                </tr>
+              </thead>
+              <tbody id="tasks-tbody">
+                <!-- Dynamically populated rows -->
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+      </main>
+
+      <!-- Action Bar -->
+      <div class="action-bar">
+        <button id="btn-generate" class="btn btn-primary btn-large">
+          <span class="btn-text">Generate Balanced Schedule</span>
+          <span class="btn-icon">→</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- ======================================================================
+         VIEW B: CANDIDATE / EMPLOYEE DASHBOARD
+         ====================================================================== -->
+    <div id="candidate-dashboard-view" class="hidden">
+      
+      <!-- Candidate Profile Banner -->
+      <div class="card candidate-profile-card">
+        <div class="candidate-header-left">
+          <div class="candidate-avatar" id="cand-avatar">A</div>
+          <div>
+            <h2 id="cand-display-name">Candidate Name</h2>
+            <p id="cand-bio" class="candidate-bio">Member profile description</p>
+            <div class="candidate-tags">
+              <span class="candidate-tag" id="cand-skills">Skills: Loading...</span>
+              <span class="candidate-tag" id="cand-hours">Capacity: 8h</span>
+              <span class="candidate-tag status-active" id="cand-status">● Active in Sprint</span>
+            </div>
+          </div>
+        </div>
+        <div class="candidate-stats-box">
+          <div class="stat-number" id="cand-assigned-hours">0h</div>
+          <div class="stat-label">Assigned Workload</div>
+        </div>
+      </div>
+
+      <!-- Candidate Personal Tasks Hub -->
+      <div class="assignments-header-row">
+        <div class="assignments-header">
+          <h3>My Assigned Deliverables & AI Rationales</h3>
+          <span class="hint-text">Tasks matched to your skill profile and hourly capacity</span>
+        </div>
+      </div>
+
+      <div class="assignments-grid" id="candidate-assignments-grid">
+        <!-- Rendered specifically for this candidate -->
+      </div>
+
+      <!-- Team Overview Container for Candidate -->
+      <div class="card candidate-team-overview-card">
+        <div class="overview-header">
+          <h3>Team Sprint Status</h3>
+          <span class="hint-text">Overall team workload and fairness evaluation</span>
+        </div>
+        <div id="cand-team-summary" class="team-summary-text">
+          Awaiting coordinator schedule generation...
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Results Section (Rendered for Lead and Shared with Candidates) -->
+    <section id="results-section" class="results-container hidden">
+      
+      <div class="section-divider">
+        <span class="divider-line"></span>
+        <span class="divider-label">OPTIMIZATION RESULTS</span>
+        <span class="divider-line"></span>
+      </div>
+
+      <!-- Executive Summary Banner -->
+      <div class="card summary-banner">
+        <div class="score-container">
+          <div class="score-badge" id="score-badge">
+            <div class="score-circle">
+              <span id="score-value">0</span><span class="score-percent">%</span>
+            </div>
+            <span class="score-label">WORKLOAD FAIRNESS</span>
+          </div>
+        </div>
+        
+        <div class="summary-details">
+          <div class="summary-tag">AI ANALYSIS & BOTTLENECK AUDIT</div>
+          <p id="executive-summary-text" class="summary-paragraph">
+            Analyzing workload commitments and aligning critical path items...
+          </p>
+          <div class="meta-badges">
+            <span class="meta-badge" id="meta-member-count">0 Teammates</span>
+            <span class="meta-badge" id="meta-task-count">0 Tasks Allocated</span>
+            <span class="meta-badge accent-badge" id="meta-engine-mode">Offline Mock</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Task Assignment Cards Header & Filter Controls -->
+      <div class="assignments-header-row">
+        <div class="assignments-header">
+          <h3>Team Assignment Schedule &amp; Rationales</h3>
+          <span class="hint-text">Each task is paired with transparent AI allocation reasoning</span>
+        </div>
+        <div class="filter-controls">
+          <button id="filter-btn-all" class="filter-btn active">All Tasks</button>
+          <button id="filter-btn-my"  class="filter-btn">★ My Tasks</button>
+        </div>
+      </div>
+
+      <div class="assignments-grid" id="assignments-grid">
+        <!-- Dynamically rendered assignment cards -->
+      </div>
+
+    </section>
+
+    <!-- Footer -->
+    <footer class="dashboard-footer">
+      <p>TeamSync AI — Built for the <strong>Devpost Learn: Build With AI</strong> Hackathon.</p>
+      <p class="footer-sub">Privacy & Security: Local credentials kept in <code>.env</code> and <code>data/</code> (git-ignored) • Isolated User Dashboards</p>
+    </footer>
+
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

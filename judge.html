@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TeamSync AI - Judge Overview & Scrollytelling Demo</title>
+  <meta name="description" content="A comprehensive judge walkthrough of TeamSync AI - an AI-powered hackathon team coordinator with workload fairness scoring and role-based dashboards.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    /* =====================================================
+       JUDGE PAGE — TeamSync AI
+       Palette: Raw Ochre #c25e00 | Weathered Slate #0f172a | Industrial Cyan #00f0ff
+       ===================================================== */
+    :root {
+      --bg:            #0f172a;
+      --bg-surface:    #1a2440;
+      --bg-card:       #1e2b4a;
+      --border:        #2d3a55;
+      --border-ochre:  rgba(194,94,0,0.5);
+      --border-cyan:   rgba(0,240,255,0.3);
+      --ochre:         #c25e00;
+      --ochre-light:   #e06d00;
+      --ochre-glow:    rgba(194,94,0,0.22);
+      --ochre-glow-hi: rgba(194,94,0,0.45);
+      --cyan:          #00f0ff;
+      --cyan-dim:      rgba(0,240,255,0.1);
+      --lime:          #a3e635;
+      --text:          #f1f5f9;
+      --text-sub:      #94a3b8;
+      --text-muted:    #64748b;
+      --font:          'Space Grotesk', sans-serif;
+      --mono:          'JetBrains Mono', monospace;
+      --r-sm: 6px; --r-md: 12px; --r-lg: 20px; --r-xl: 28px; --r-full: 9999px;
+      --ease: cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { background: var(--bg); color: var(--text); font-family: var(--font); line-height: 1.65; overflow-x: hidden; -webkit-font-smoothing: antialiased; }
+
+    /* Ambient glows */
+    .amb { position: fixed; border-radius: 50%; filter: blur(160px); pointer-events: none; z-index: 0; }
+    .amb-o { width: 700px; height: 700px; background: var(--ochre-glow); top: -200px; right: -200px; }
+    .amb-c { width: 600px; height: 600px; background: var(--cyan-dim); bottom: 5%; left: -200px; }
+
+    /* Sticky return button */
+    #return-btn {
+      position: fixed; top: 1.25rem; left: 1.25rem; z-index: 999;
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      background: rgba(30,43,74,0.88); backdrop-filter: blur(12px);
+      border: 1px solid var(--border-ochre); color: var(--ochre-light);
+      font-family: var(--mono); font-size: 0.78rem; font-weight: 700; letter-spacing: 0.06em;
+      padding: 0.55rem 1rem; border-radius: var(--r-full); text-decoration: none;
+      transition: all 0.25s var(--ease); box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+      opacity: 0; transform: translateX(-24px);
+    }
+    #return-btn:hover { background: var(--ochre-glow-hi); border-color: var(--ochre); color: #fff; transform: translateX(-2px); }
+
+    /* Page layout */
+    .wrap { position: relative; z-index: 1; max-width: 1000px; margin: 0 auto; padding: 2rem 1.5rem 8rem; }
+
+    /* Scroll reveal */
+    .reveal { opacity: 0; transform: translateY(38px); transition: opacity 0.72s var(--ease), transform 0.72s var(--ease); }
+    .reveal.on { opacity: 1; transform: translateY(0); }
+    .s1{transition-delay:.10s;} .s2{transition-delay:.20s;} .s3{transition-delay:.30s;} .s4{transition-delay:.40s;} .s5{transition-delay:.50s;}
+
+    /* Section sep */
+    .sep { display: flex; align-items: center; gap: 1rem; margin: 5rem 0 3.5rem; }
+    .sep-l { flex: 1; height: 1px; background: var(--border); }
+    .sep-t { font-family: var(--mono); font-size: 0.7rem; font-weight: 700; letter-spacing: 0.18em; color: var(--cyan); }
+
+    /* Section tag */
+    .stag { display: inline-flex; align-items: center; gap: 0.45rem; background: rgba(194,94,0,0.12); border: 1px solid var(--border-ochre); color: var(--ochre-light); font-family: var(--mono); font-size: 0.7rem; font-weight: 700; letter-spacing: 0.12em; padding: 0.25rem 0.75rem; border-radius: var(--r-full); margin-bottom: 1.25rem; }
+    .dot { width:7px; height:7px; border-radius:50%; background:var(--cyan); box-shadow:0 0 8px var(--cyan); animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{transform:scale(0.9);opacity:.8;} 50%{transform:scale(1.3);opacity:1;} }
+
+    /* Typography */
+    .sh { font-size: clamp(2rem,5vw,3.2rem); font-weight:700; letter-spacing:-.03em; line-height:1.1; margin-bottom:1rem; }
+    .ac { color:var(--cyan); text-shadow:0 0 24px rgba(0,240,255,.45); }
+    .ot { color:var(--ochre-light); }
+    .st { color:var(--text-sub); font-size:1.1rem; line-height:1.7; max-width:700px; }
+
+    /* === HERO === */
+    .hero { display:flex; flex-direction:column; align-items:center; text-align:center; padding:7rem 0 5rem; }
+    .trophy { width:110px; height:110px; border-radius:50%; background:radial-gradient(circle, rgba(194,94,0,.35) 0%, transparent 70%); border:2px solid var(--ochre); box-shadow:0 0 40px var(--ochre-glow-hi); display:flex; align-items:center; justify-content:center; font-size:3.2rem; margin-bottom:2rem; animation:float 4s ease-in-out infinite; }
+    @keyframes float { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-10px);} }
+    .hero-ey { font-family:var(--mono); font-size:.75rem; font-weight:700; letter-spacing:.18em; color:var(--ochre-light); margin-bottom:1rem; }
+    .hero-t  { font-size:clamp(2.8rem,7vw,5rem); font-weight:700; letter-spacing:-.04em; line-height:1.05; margin-bottom:1.5rem; }
+    .hero-s  { color:var(--text-sub); font-size:1.15rem; max-width:620px; line-height:1.75; margin-bottom:2.5rem; }
+    .chips   { display:flex; flex-wrap:wrap; justify-content:center; gap:.75rem; }
+    .chip    { display:inline-flex; align-items:center; gap:.4rem; background:var(--bg-surface); border:1px solid var(--border); color:var(--text-sub); font-family:var(--mono); font-size:.78rem; padding:.35rem .9rem; border-radius:var(--r-full); }
+    .chip.cc { border-color:var(--border-cyan); color:var(--cyan); }
+    .chip.oc { border-color:var(--border-ochre); color:var(--ochre-light); }
+
+    /* === PROBLEM === */
+    .pg { display:grid; grid-template-columns:1fr 1fr; gap:1.25rem; margin-top:2.5rem; }
+    @media(max-width:680px){.pg{grid-template-columns:1fr;}}
+    .pc { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--r-md); padding:1.5rem; display:flex; flex-direction:column; gap:.75rem; transition:border-color .25s,transform .25s; }
+    .pc:hover { border-color:var(--border-ochre); transform:translateY(-2px); }
+    .pc.hl { border-color:rgba(251,113,133,.4); background:rgba(251,113,133,.06); }
+    .pi { font-size:2rem; }
+    .pt { font-weight:600; font-size:1rem; }
+    .pd { color:var(--text-sub); font-size:.9rem; line-height:1.6; }
+
+    /* === FEATURES === */
+    .fg { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:1.25rem; margin-top:2.5rem; }
+    .fc { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--r-md); padding:1.5rem; transition:border-color .25s,box-shadow .25s,transform .25s; }
+    .fc:hover { border-color:var(--border-cyan); box-shadow:0 8px 32px var(--cyan-dim); transform:translateY(-3px); }
+    .ficon { width:46px; height:46px; border-radius:var(--r-md); background:var(--ochre-glow); border:1px solid var(--border-ochre); display:flex; align-items:center; justify-content:center; font-size:1.5rem; margin-bottom:1rem; }
+    .ft { font-weight:600; font-size:1rem; margin-bottom:.4rem; }
+    .fd { color:var(--text-sub); font-size:.88rem; line-height:1.6; }
+
+    /* === FORMULA === */
+    .fcard { background:linear-gradient(135deg,var(--bg-card),#1a2440); border:1px solid var(--border-cyan); border-radius:var(--r-xl); padding:3rem 2.5rem; text-align:center; position:relative; overflow:hidden; margin-top:2.5rem; }
+    .fcard::before { content:''; position:absolute; inset:0; background:radial-gradient(ellipse at 50% 0%, var(--cyan-dim) 0%, transparent 65%); pointer-events:none; }
+    .flabel { font-family:var(--mono); font-size:.72rem; font-weight:700; letter-spacing:.2em; color:var(--cyan); margin-bottom:2rem; }
+    .fblock { background:rgba(15,23,42,.7); border:1px solid var(--border-cyan); border-radius:var(--r-md); padding:1.75rem 2rem; font-family:var(--mono); font-size:clamp(.82rem,2.5vw,1.05rem); line-height:1.9; color:var(--cyan); display:inline-block; width:100%; max-width:680px; text-align:left; }
+    .fh { color:var(--ochre-light); }
+    .fs { color:var(--text-sub); }
+    .fbd { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:1rem; margin-top:2.5rem; }
+    .fbi { background:rgba(15,23,42,.5); border:1px solid var(--border); border-radius:var(--r-md); padding:1.1rem 1.25rem; text-align:left; }
+    .fbv { font-family:var(--mono); font-size:.8rem; color:var(--cyan); margin-bottom:.35rem; font-weight:700; }
+    .fbd2 { font-size:.85rem; color:var(--text-sub); line-height:1.5; }
+
+    /* === ARCH === */
+    .ad { margin-top:2.5rem; display:flex; flex-direction:column; align-items:center; }
+    .al { width:100%; max-width:680px; background:var(--bg-card); border:1px solid var(--border); border-radius:var(--r-md); padding:1.25rem 1.75rem; display:flex; align-items:center; gap:1.25rem; transition:border-color .25s,box-shadow .25s; }
+    .al:hover { border-color:var(--border-ochre); box-shadow:0 6px 24px rgba(194,94,0,.2); }
+    .al.ap { border-color:var(--border-ochre); background:rgba(194,94,0,.08); }
+    .al.as { border-color:var(--border-cyan); background:var(--cyan-dim); }
+    .aicon { width:46px; height:46px; border-radius:50%; background:var(--bg-surface); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; font-size:1.4rem; flex-shrink:0; }
+    .ainfo { flex:1; }
+    .an { font-weight:600; font-size:.95rem; margin-bottom:.2rem; }
+    .adesc { font-size:.82rem; color:var(--text-sub); font-family:var(--mono); }
+    .ab { font-family:var(--mono); font-size:.7rem; font-weight:700; padding:.2rem .6rem; border-radius:var(--r-full); background:rgba(163,230,53,.12); border:1px solid rgba(163,230,53,.35); color:var(--lime); white-space:nowrap; }
+    .ab.ac2 { background:var(--cyan-dim); border-color:var(--border-cyan); color:var(--cyan); }
+    .ab.ao  { background:var(--ochre-glow); border-color:var(--border-ochre); color:var(--ochre-light); }
+    .aconn { width:2px; height:36px; background:linear-gradient(to bottom,var(--border-ochre),var(--border-cyan)); position:relative; display:flex; align-items:center; justify-content:center; }
+    .aconn::after { content:'↓'; position:absolute; font-size:.75rem; color:var(--text-muted); background:var(--bg); padding:0 4px; }
+
+    /* === APPRECIATION === */
+    .apcard { background:linear-gradient(135deg,rgba(194,94,0,.1) 0%,rgba(0,240,255,.06) 100%); border:1px solid var(--border-ochre); border-radius:var(--r-xl); padding:3.5rem 3rem; text-align:center; position:relative; overflow:hidden; margin-top:2.5rem; }
+    .apcard::before { content:''; position:absolute; inset:0; background:radial-gradient(circle at 50% 0%,rgba(194,94,0,.12) 0%,transparent 60%); pointer-events:none; }
+    .apem { font-size:4rem; display:block; margin-bottom:1.25rem; animation:sparkle 3s ease-in-out infinite; }
+    @keyframes sparkle { 0%,100%{transform:scale(1) rotate(0);filter:brightness(1);} 25%{transform:scale(1.1) rotate(-5deg);filter:brightness(1.3);} 75%{transform:scale(1.1) rotate(5deg);filter:brightness(1.3);} }
+    .aptt { font-size:clamp(1.5rem,4vw,2.2rem); font-weight:700; letter-spacing:-.02em; margin-bottom:1.5rem; }
+    .apbd { color:var(--text-sub); font-size:1rem; line-height:1.85; max-width:680px; margin:0 auto 2rem; }
+    .apq  { display:inline-block; background:rgba(15,23,42,.6); border-left:3px solid var(--ochre); border-radius:0 var(--r-md) var(--r-md) 0; padding:1rem 1.5rem; font-style:italic; color:var(--text-sub); font-size:.95rem; max-width:600px; text-align:left; margin:0 auto; }
+
+    /* === CONTACT === */
+    .ccard { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--r-xl); padding:2.5rem; margin-top:2.5rem; }
+    .chdr  { display:flex; align-items:center; gap:1.25rem; margin-bottom:2rem; flex-wrap:wrap; }
+    .cav   { width:72px; height:72px; border-radius:50%; background:radial-gradient(circle,rgba(194,94,0,.35) 0%,transparent 70%); border:2px solid var(--ochre); box-shadow:0 0 20px var(--ochre-glow-hi); display:flex; align-items:center; justify-content:center; font-size:2rem; flex-shrink:0; }
+    .cnm   { font-size:1.4rem; font-weight:700; letter-spacing:-.02em; margin-bottom:.3rem; }
+    .crl   { font-family:var(--mono); font-size:.78rem; color:var(--ochre-light); letter-spacing:.1em; }
+    .cls   { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:1rem; }
+    .cl    { display:flex; align-items:center; gap:1rem; background:var(--bg-surface); border:1px solid var(--border); border-radius:var(--r-md); padding:1rem 1.25rem; text-decoration:none; color:var(--text); transition:border-color .2s,box-shadow .2s,transform .2s; }
+    .cl:hover { border-color:var(--border-cyan); box-shadow:0 6px 20px var(--cyan-dim); transform:translateY(-2px); }
+    .cli  { width:40px; height:40px; border-radius:var(--r-md); background:var(--bg-card); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; font-size:1.25rem; flex-shrink:0; }
+    .cll  { font-family:var(--mono); font-size:.7rem; color:var(--text-muted); letter-spacing:.1em; margin-bottom:.2rem; }
+    .clv  { font-size:.88rem; font-weight:600; color:var(--cyan); word-break:break-all; }
+
+    /* CTA */
+    .cta  { text-align:center; padding:4rem 0 2rem; }
+    .cta p { color:var(--text-sub); font-size:.9rem; margin-top:.75rem; }
+    .btn-cta { display:inline-flex; align-items:center; gap:.65rem; background:linear-gradient(135deg,var(--ochre),var(--ochre-light)); color:#fff; font-family:var(--font); font-size:1rem; font-weight:700; padding:.9rem 2.25rem; border-radius:var(--r-md); text-decoration:none; box-shadow:0 4px 20px var(--ochre-glow-hi); transition:transform .2s,box-shadow .2s; }
+    .btn-cta:hover { transform:translateY(-3px); box-shadow:0 8px 32px rgba(194,94,0,.5); }
+
+    /* Footer */
+    .foot { text-align:center; padding:2rem 0; border-top:1px solid var(--border); color:var(--text-muted); font-size:.82rem; margin-top:4rem; }
+    .foot code { background:var(--bg-surface); padding:.1rem .4rem; border-radius:var(--r-sm); font-family:var(--mono); font-size:.78rem; color:var(--text-sub); }
+
+    @media(max-width:640px){.hero{padding:5rem 0 4rem;}.fcard,.apcard{padding:2rem 1.25rem;}.al{padding:1rem 1.25rem;}.wrap{padding:1rem 1rem 6rem;}}
+  </style>
+</head>
+<body>
+
+  <div class="amb amb-o"></div>
+  <div class="amb amb-c"></div>
+
+  <!-- Sticky Return Button -->
+  <a href="/" id="return-btn" title="Return to TeamSync AI Dashboard">
+    <span>👈</span>
+    <span id="rlabel">Return to Dashboard</span>
+  </a>
+
+  <div class="wrap">
+
+    <!-- 1. HERO -->
+    <section class="hero">
+      <div class="trophy reveal">🏆</div>
+      <p class="hero-ey reveal s1">DEVPOST &middot; BUILD WITH AI HACKATHON &middot; 2026</p>
+      <h1 class="hero-t reveal s2">✨ Behind the Engine: AI Team Coordinator</h1>
+      <p class="hero-s reveal s3">An AI-powered team task coordinator that eliminates workload imbalance, assigns deliverables by skill, and gives every hackathon team a real-time Workload Fairness Score &mdash; powered by OpenRouter and built for speed.</p>
+      <div class="chips reveal s4">
+        <span class="chip cc">&#9889; FastAPI Backend</span>
+        <span class="chip oc">&#129302; OpenRouter AI</span>
+        <span class="chip cc">&#128202; Fairness Scoring</span>
+        <span class="chip oc">&#128272; Role-Based Auth</span>
+        <span class="chip">&#127912; Kinetic Dashboard</span>
+        <span class="chip">&#128260; Mock Offline Mode</span>
+      </div>
+    </section>
+
+    <!-- 2. PROBLEM -->
+    <div class="sep reveal"><div class="sep-l"></div><span class="sep-t">THE PROBLEM</span><div class="sep-l"></div></div>
+    <section id="problem">
+      <div class="stag reveal"><span class="dot"></span> COORDINATION FAILURE</div>
+      <h2 class="sh reveal">Hackathon teams <span class="ot">burn out</span> from poor task distribution.</h2>
+      <p class="st reveal">Team coordination breakdown, unequal workloads, and free-rider issues derail even the most talented hackathon teams. Without intelligent coordination, one teammate drowns in tasks while another is underutilized. Skill mismatches lead to rework, missed deadlines, and last-minute chaos &mdash; the enemy of any submission.</p>
+      <div class="pg">
+        <div class="pc hl reveal s1"><span class="pi">&#9878;&#65039;</span><div class="pt">Unbalanced Workloads</div><div class="pd">Some members get 18+ hours of tasks while others have 3. Without measurement there is no balance.</div></div>
+        <div class="pc hl reveal s2"><span class="pi">&#127919;</span><div class="pt">Skill Mismatches</div><div class="pd">A backend engineer assigned a UI design task loses hours and produces lower-quality output.</div></div>
+        <div class="pc reveal s3"><span class="pi">&#128260;</span><div class="pt">Manual Coordination Hell</div><div class="pd">Spreadsheets and Discord DMs don't scale. Reassignments get lost; no one knows who owns what.</div></div>
+        <div class="pc reveal s4"><span class="pi">&#128680;</span><div class="pt">No Bottleneck Visibility</div><div class="pd">Critical path tasks block submission. Teams only find out at 3 AM when there is no time to recover.</div></div>
+      </div>
+    </section>
+
+    <!-- 3. FEATURES -->
+    <div class="sep reveal"><div class="sep-l"></div><span class="sep-t">KEY FEATURES</span><div class="sep-l"></div></div>
+    <section id="features">
+      <div class="stag reveal"><span class="dot"></span> APP WALKTHROUGH</div>
+      <h2 class="sh reveal">One click from <span class="ac">chaos</span> to clarity.</h2>
+      <p class="st reveal">TeamSync AI takes your team roster and task list, then produces a skill-matched, load-balanced schedule with transparent AI reasoning for every assignment &mdash; in under 3 seconds.</p>
+      <div class="fg">
+        <div class="fc reveal s1"><div class="ficon">&#9889;</div><div class="ft">1-Click Sample Data</div><div class="fd">Instantly load a real hackathon team configuration to demo the full pipeline without manual input.</div></div>
+        <div class="fc reveal s2"><div class="ficon">&#128202;</div><div class="ft">Animated Fairness Score</div><div class="fd">Count-up animation on a 0&ndash;100% Workload Fairness Score with a glowing Industrial Cyan badge.</div></div>
+        <div class="fc reveal s3"><div class="ficon">&#127183;</div><div class="ft">Staggered Task Cards</div><div class="fd">Each task card cascades in with a kinetic stagger animation showing: skill tag, assignee, hours, and 1-sentence AI rationale.</div></div>
+        <div class="fc reveal s4"><div class="ficon">&#128272;</div><div class="ft">Role-Based Auth</div><div class="fd">Team Leads get full coordinator power. Candidates get a personalized hub showing only their assigned tasks and team status.</div></div>
+        <div class="fc reveal s5"><div class="ficon">&#127758;</div><div class="ft">OpenRouter AI Pipeline</div><div class="fd">Primary: Qwen 2.5 Coder 32B. Fallback: LLaMA 3.3 70B. Graceful degradation to intelligent offline Mock Mode.</div></div>
+        <div class="fc reveal"><div class="ficon">&#128737;&#65039;</div><div class="ft">Security &amp; Sanitization</div><div class="fd">All inputs stripped of null bytes, prompt injection markers, and XSS vectors. CORS restricted to localhost.</div></div>
+      </div>
+    </section>
+
+    <!-- 4. MATH FORMULA -->
+    <div class="sep reveal"><div class="sep-l"></div><span class="sep-t">THE MATH</span><div class="sep-l"></div></div>
+    <section id="formula">
+      <div class="stag reveal"><span class="dot"></span> FAIRNESS ALGORITHM</div>
+      <h2 class="sh reveal">Objective fairness, <span class="ac">mathematically defined.</span></h2>
+      <p class="st reveal">The Workload Fairness Score is a deterministic metric derived from statistical workload variance and skill alignment, computed on every schedule generation.</p>
+      <div class="fcard reveal">
+        <div class="flabel">WORKLOAD FAIRNESS SCORE &mdash; FORMAL DEFINITION</div>
+        <div style="display:flex;justify-content:center;margin-bottom:2rem;">
+          <div class="fblock">
+<span class="fh">WorkloadFairnessScore</span> <span class="fs">=</span><br>
+&nbsp;&nbsp;100 &times; ( 1 &minus; ( <span class="fh">StdDev_Hours</span> / <span class="fh">Mean_Hours</span> ) ) &times; <span class="fh">SkillMatchFactor</span>
+          </div>
+        </div>
+        <div class="fbd">
+          <div class="fbi"><div class="fbv">StdDev_Hours</div><div class="fbd2">Standard deviation of hours assigned across all members. Lower = more balanced workload.</div></div>
+          <div class="fbi"><div class="fbv">Mean_Hours</div><div class="fbd2">Average hours per member. Normalizes variance into a 0&ndash;1 coefficient of variation.</div></div>
+          <div class="fbi"><div class="fbv">SkillMatchFactor</div><div class="fbd2">0.0&ndash;1.0 multiplier. Perfect skill alignment = 1.0; mismatches penalize the score.</div></div>
+          <div class="fbi"><div class="fbv">Score Range</div><div class="fbd2">0 (chaotic, mismatched) &rarr; 100 (perfectly balanced and skill-aligned). &gt;85 is healthy.</div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. ARCHITECTURE -->
+    <div class="sep reveal"><div class="sep-l"></div><span class="sep-t">ARCHITECTURE</span><div class="sep-l"></div></div>
+    <section id="architecture">
+      <div class="stag reveal"><span class="dot"></span> TECHNICAL DIAGRAM</div>
+      <h2 class="sh reveal">How the <span class="ac">pipeline</span> works, end-to-end.</h2>
+      <p class="st reveal">Every schedule generation passes through a 6-layer pipeline &mdash; from the browser to OpenRouter and back &mdash; with security validation and robust fallback at each stage.</p>
+      <div class="ad">
+        <div class="al ap reveal s1"><div class="aicon">&#128187;</div><div class="ainfo"><div class="an">Kinetic Browser UI</div><div class="adesc">index.html + app.js + style.css</div></div><span class="ab ao">HTML &middot; CSS &middot; JS</span></div>
+        <div class="aconn reveal"></div>
+        <div class="al reveal s2"><div class="aicon">&#9889;</div><div class="ainfo"><div class="an">FastAPI Application Server</div><div class="adesc">app.py &mdash; /api/coordinate &middot; /api/auth/* &middot; /judge</div></div><span class="ab ao">Python &middot; uvicorn</span></div>
+        <div class="aconn reveal"></div>
+        <div class="al reveal s3"><div class="aicon">&#128737;&#65039;</div><div class="ainfo"><div class="an">Security &amp; Validation Layer</div><div class="adesc">security.py &mdash; Pydantic bounds &middot; sanitize_text() &middot; XSS prevention</div></div><span class="ab">Max 10 members &middot; Max 20 tasks</span></div>
+        <div class="aconn reveal"></div>
+        <div class="al as reveal s4"><div class="aicon">&#129302;</div><div class="ainfo"><div class="an">OpenRouter AI Coordinator</div><div class="adesc">coordinator.py &mdash; Qwen 2.5 Coder 32B &rarr; LLaMA 3.3 70B &rarr; Mock</div></div><span class="ab ac2">3-tier fallback</span></div>
+        <div class="aconn reveal"></div>
+        <div class="al reveal s5"><div class="aicon">&#128269;</div><div class="ainfo"><div class="an">Regex JSON Extraction</div><div class="adesc">extract_json_payload() &mdash; direct &rarr; markdown block &rarr; outer braces</div></div><span class="ab">Robust 3-stage parser</span></div>
+        <div class="aconn reveal"></div>
+        <div class="al as reveal"><div class="aicon">&#128202;</div><div class="ainfo"><div class="an">Storage &amp; Shared Schedule Sync</div><div class="adesc">storage.py &mdash; JSON user store &middot; team schedule broadcast to candidates</div></div><span class="ab ac2">Real-time broadcast</span></div>
+      </div>
+    </section>
+
+    <!-- 6. JUDGE APPRECIATION -->
+    <div class="sep reveal"><div class="sep-l"></div><span class="sep-t">A NOTE FOR JUDGES</span><div class="sep-l"></div></div>
+    <section id="appreciation">
+      <div class="stag reveal"><span class="dot"></span> GRATITUDE</div>
+      <h2 class="sh reveal">&#10024; A Special Note of Thanks to Our Judges &amp; Organizers</h2>
+      <div class="apcard reveal">
+        <span class="apem">&#10024;</span>
+        <h3 class="aptt">Thank you so much for taking the time to review our submission!</h3>
+        <div class="apbd">
+          <p>✨ <strong>A Special Note of Thanks to Our Judges & Organizers:</strong> Thank you so much for taking the time to review our submission! Evaluating hackathon projects takes immense dedication. We built this app with deep respect for open-source AI, user-centric design, and real-world problem solving. Your feedback means the world to us!</p>
+          <br>
+          <p>TeamSync AI was built as a sincere attempt to solve a real coordination problem that trips up hackathon teams &mdash; including mine. If even one feature sparks an idea or demonstrates a pattern worth borrowing, this submission will have been worth every line of code.</p>
+        </div>
+        <blockquote class="apq">"Evaluating hackathon projects takes immense dedication. Your feedback means the world to us!"</blockquote>
+      </div>
+    </section>
+
+    <!-- 7. CREATOR CONTACT -->
+    <div class="sep reveal"><div class="sep-l"></div><span class="sep-t">THE BUILDER</span><div class="sep-l"></div></div>
+    <section id="contact">
+      <div class="stag reveal"><span class="dot"></span> CREATOR CONTACT</div>
+      <h2 class="sh reveal">Get in <span class="ac">touch.</span></h2>
+      <p class="st reveal">Have questions about the implementation, want to collaborate, or curious about the design decisions? Reach out &mdash; always happy to chat.</p>
+      <div class="ccard reveal">
+        <div class="chdr">
+          <div class="cav">&#128104;&#8205;&#128187;</div>
+          <div>
+            <div class="cnm">Muhammad Hurres</div>
+            <div class="crl">FULL-STACK DEVELOPER &middot; HACKATHON BUILDER</div>
+          </div>
+        </div>
+        <div class="cls">
+          <a href="tel:+923481591949" class="cl" id="contact-phone" aria-label="Call or WhatsApp">
+            <div class="cli">&#128241;</div>
+            <div><div class="cll">PHONE / WHATSAPP</div><div class="clv">0348 1591949</div></div>
+          </a>
+          <a href="mailto:hackimoriaizn@gmail.com" class="cl" id="contact-email" aria-label="Send email">
+            <div class="cli">&#9993;&#65039;</div>
+            <div><div class="cll">EMAIL</div><div class="clv">hackimoriaizn@gmail.com</div></div>
+          </a>
+          <a href="https://github.com/muhammadhurres" target="_blank" rel="noopener noreferrer" class="cl" id="contact-github" aria-label="GitHub profile">
+            <div class="cli">&#128025;</div>
+            <div><div class="cll">GITHUB</div><div class="clv">github.com/muhammadhurres</div></div>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Final CTA -->
+    <div class="cta reveal">
+      <a href="/" class="btn-cta" id="final-return-btn">
+        <span>&#128640;</span>
+        <span>Open TeamSync AI Dashboard</span>
+      </a>
+      <p>Experience the full coordinator flow, role-based login, and AI schedule generation live.</p>
+    </div>
+
+    <!-- Footer -->
+    <footer class="foot reveal">
+      <p>TeamSync AI &mdash; Built for the <strong>Devpost Learn: Build With AI</strong> Hackathon &nbsp;&middot;&nbsp; <code>python app.py</code> to run &nbsp;&middot;&nbsp; <code>http://127.0.0.1:8000</code></p>
+      <p style="margin-top:.4rem;">Palette: Raw Ochre <code>#c25e00</code> &middot; Weathered Slate <code>#0f172a</code> &middot; Industrial Cyan <code>#00f0ff</code></p>
+    </footer>
+
+  </div>
+
+  <script>
+    (function () {
+      'use strict';
+
+      // IntersectionObserver: fade-in on scroll
+      var els = document.querySelectorAll('.reveal');
+      if ('IntersectionObserver' in window) {
+        var obs = new IntersectionObserver(function (entries) {
+          entries.forEach(function (e) {
+            if (e.isIntersecting) { e.target.classList.add('on'); obs.unobserve(e.target); }
+          });
+        }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+        els.forEach(function (el) { obs.observe(el); });
+      } else {
+        els.forEach(function (el) { el.classList.add('on'); });
+      }
+
+      // Return button: slide in after 800ms
+      var btn = document.getElementById('return-btn');
+      if (btn) {
+        setTimeout(function () {
+          btn.style.opacity = '1';
+          btn.style.transform = 'translateX(0)';
+        }, 800);
+      }
+
+      // Architecture: dim others on hover
+      var layers = document.querySelectorAll('.al');
+      layers.forEach(function (l, i) {
+        l.addEventListener('mouseenter', function () { layers.forEach(function (x, j) { if (j !== i) x.style.opacity = '0.4'; }); });
+        l.addEventListener('mouseleave', function () { layers.forEach(function (x) { x.style.opacity = ''; }); });
+      });
+
+      // Trophy: mouse parallax
+      var trophy = document.querySelector('.trophy');
+      if (trophy) {
+        document.addEventListener('mousemove', function (e) {
+          var cx = window.innerWidth / 2, cy = window.innerHeight / 2;
+          trophy.style.transform = 'translateY(' + ((e.clientY - cy) / cy * -8) + 'px) translateX(' + ((e.clientX - cx) / cx * -6) + 'px)';
+        });
+      }
+
+      // Scroll progress in return button label
+      var rlabel = document.getElementById('rlabel');
+      if (rlabel) {
+        window.addEventListener('scroll', function () {
+          var docH = document.documentElement.scrollHeight - window.innerHeight;
+          var pct = docH > 0 ? Math.round(window.scrollY / docH * 100) : 0;
+          rlabel.textContent = pct < 5 ? 'Return to Main Dashboard' : pct + '% \u00b7 Return to Dashboard';
+        }, { passive: true });
+      }
+    })();
+  </script>
+</body>
+</html>

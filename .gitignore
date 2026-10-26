@@ -1,0 +1,24 @@
+# Python cache
+__pycache__/
+*.pyc
+
+# Personal learning context
+/devpost/learner-profile.md
+
+# Credentials & environment
+.env
+.env.*
+!.env.example
+
+# Local storage & user database
+data/
+user_store.json
+
+# Archived non-project files
+useless/
+
+# Vercel
+.vercel/
+
+# Video generator tool (external creation tool)
+agnes-video-generator-skills/
